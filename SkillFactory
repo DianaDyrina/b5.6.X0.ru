@@ -1,55 +1,96 @@
-board = list(range(1,10))
+from random import randint
 
-def draw_board(board):
-    print ("-" * 13)
-    for i in range(3):
-        print ("|", board[0+i*3], "|", board[1+i*3], "|", board[2+i*3], "|")
-        print ("-" * 13)
 
-def take_input(player_token):
-    valid = False
-    while not valid:
-        player_answer = input("Куда поставим " + player_token+"? ")
-        try:
-            player_answer = int(player_answer)
-        except:
-            print ("Некорректный ввод. Вы уверены, что ввели число?")
-            continue
-        if player_answer >= 1 and player_answer <= 9:
-            if (str(board[player_answer-1]) not in "XO"):
-                board[player_answer-1] = player_token
-                valid = True
+# Menu
+# --------------------------------------------------------
+def renderMenu():
+    print('1. Новая игра\n2. Выход')
+
+
+print(str.upper('«Крестики-нолики»'))
+key = None
+while key not in ['1', '2']:
+    renderMenu()
+    key = input('Выберите вариант: ')
+if key == '2':
+    exit()
+
+
+# Game
+# --------------------------------------------------------
+def start_game():
+    m = [['-' for _ in range(3)] for _ in range(3)]
+    steps = 0
+
+    def render_game():
+        print(f'  0 1 2\n' \
+              f'0 {m[0][0]} {m[0][1]} {m[0][2]}\n'\
+              f'1 {m[1][0]} {m[1][1]} {m[1][2]}\n'\
+              f'2 {m[2][0]} {m[2][1]} {m[2][2]}\n')
+
+    def set_cell(i, j, turn):
+        m[i][j] = 'o' if turn else 'x'
+        nonlocal steps
+        steps += 1
+
+    def check_winner(turn):
+        if (m[0][0] == m[0][1] == m[0][2] != '-' or
+            m[1][0] == m[1][1] == m[1][2] != '-' or
+            m[2][0] == m[2][1] == m[2][2] != '-' or
+            m[0][0] == m[1][0] == m[2][0] != '-' or
+            m[0][1] == m[1][1] == m[2][1] != '-' or
+            m[0][2] == m[1][2] == m[2][2] != '-' or
+            m[0][0] == m[1][1] == m[2][2] != '-' or
+            m[0][2] == m[1][1] == m[2][0] != '-'):
+            print('Вы победитель!' if turn else 'Противник победил!')
+            return True
+         steps == 9:
+            print('Победила ничья!')
+            return True
+        else:
+            return False
+
+    # 0 - противник, 1 - игрок
+    turn = randint(0, 1) % 2
+    print(f'Игра началась! Вы ходите {"вторым" if turn else "первым"}!')
+    if turn:
+        set_cell(randint(0, 2), randint(0, 2), not turn)
+    render_game()
+
+    while True:
+        while True:
+            print('Ваш ход!')
+            i, j = None, None
+            while i not in ['0', '1', '2']:
+                i = input('Введите строку: ')
+            while j not in ['0', '1', '2']:
+                j = input('Введите столбец: ')
+
+            if m[int(i)][int(j)] != '-':
+                print(f'Ошибка ввода! Клетка [{i}, {j}] уже заполнена!')
+                render_game()
             else:
-                print ("Эта клеточка уже занята")
-        else:
-            print ("Некорректный ввод. Введите число от 1 до 9 чтобы походить.")
-
-def check_win(board):
-    win_coord = ((0,1,2),(3,4,5),(6,7,8),(0,3,6),(1,4,7),(2,5,8),(0,4,8),(2,4,6))
-    for each in win_coord:
-        if board[each[0]] == board[each[1]] == board[each[2]]:
-            return board[each[0]]
-    return False
-
-def main(board):
-    counter = 0
-    win = False
-    while not win:
-        draw_board(board)
-        if counter % 2 == 0:
-            take_input("X")
-        else:
-            take_input("O")
-        counter += 1
-        if counter > 4:
-            tmp = check_win(board)
-            if tmp:
-                print (tmp, "выиграл!")
-                win = True
                 break
-        if counter == 9:
-            print ("Ничья!")
+        set_cell(int(i), int(j), turn)
+        render_game()
+        if check_winner(True):
             break
-    draw_board(board)
 
-main(board)
+        print('Ход противника!')
+        i, j = randint(0, 2), randint(0, 2)
+        while m[i][j] != '-':
+            i, j = randint(0, 2), randint(0, 2)
+        set_cell(i, j, not turn)
+        render_game()
+        if check_winner(False):
+            break
+
+
+while True:
+    start_game()
+    print('Начать сначала?\n1.Да\n2.Нет')
+    key = None
+    while key not in ['1', '2']:
+        key = input('Выберите вариант: ')
+    if key == '2':
+        break
